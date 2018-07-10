@@ -31,7 +31,7 @@ def train(env, nb_epochs, nb_epoch_cycles, render_eval, reward_scale, render, pa
 
     # Set up logging stuff only for a single worker.
     if rank == 0:
-        saver = tf.train.Saver()
+        saver = tf.train.Saver(max_to_keep=100)
     else:
         saver = None
 
@@ -182,6 +182,12 @@ def train(env, nb_epochs, nb_epoch_cycles, render_eval, reward_scale, render, pa
             logger.dump_tabular()
             logger.info('')
             logdir = logger.get_dir()
+
+            if saver is not None:
+                logger.info('Saving models...')
+                saver.save(sess, os.path.join(logdir, 'models', '{}_reach.ckpt'.format(epoch_episodes)))
+                logger.info('Models saved in...' + os.path.join(logdir, 'models', '{}_reach.ckpt'.format(epoch_episodes)))
+
             if rank == 0 and logdir:
                 if hasattr(env, 'get_state'):
                     with open(os.path.join(logdir, 'env_state.pkl'), 'wb') as f:
