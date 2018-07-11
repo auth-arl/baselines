@@ -41,6 +41,13 @@ def train(env, nb_epochs, nb_epoch_cycles, render_eval, reward_scale, render, pa
     episode_rewards_history = deque(maxlen=100)
     with U.single_threaded_session() as sess:
         # Prepare everything.
+
+        if existing_model is not None:
+            logger.info("Restoring from saved model: ", existing_model)
+            saver.restore(sess, existing_model)
+        else:
+            sess.run(tf.global_variables_initializer())
+
         agent.initialize(sess)
         sess.graph.finalize()
 
