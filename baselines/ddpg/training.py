@@ -163,12 +163,6 @@ def train(env, nb_epochs, nb_epoch_cycles, render_eval, reward_scale, render, pa
             combined_stats['total/episodes'] = episodes
             combined_stats['rollout/episodes'] = epoch_episodes
             combined_stats['rollout/actions_std'] = np.std(epoch_actions)
-            # Evaluation statistics.
-            if eval_env is not None:
-                combined_stats['eval/return'] = eval_episode_rewards
-                combined_stats['eval/return_history'] = np.mean(eval_episode_rewards_history)
-                combined_stats['eval/Q'] = eval_qs
-                combined_stats['eval/episodes'] = len(eval_episode_rewards)
             def as_scalar(x):
                 if isinstance(x, np.ndarray):
                     assert x.size == 1
@@ -179,6 +173,13 @@ def train(env, nb_epochs, nb_epoch_cycles, render_eval, reward_scale, render, pa
                     raise ValueError('expected scalar, got %s'%x)
             combined_stats_sums = MPI.COMM_WORLD.allreduce(np.array([as_scalar(x) for x in combined_stats.values()]))
             combined_stats = {k : v / mpi_size for (k,v) in zip(combined_stats.keys(), combined_stats_sums)}
+
+            # Evaluation statistics.
+            if eval_env is not None:
+                combined_stats['eval/return'] = eval_episode_rewards
+                combined_stats['eval/return_history'] = np.mean(eval_episode_rewards_history)
+                combined_stats['eval/Q'] = eval_qs
+                combined_stats['eval/episodes'] = len(eval_episode_rewards)
 
             # Total statistics.
             combined_stats['total/epochs'] = epoch + 1
